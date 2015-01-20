@@ -13,7 +13,7 @@ class CheckJmxJolokia < Sensu::Plugin::Check::CLI
   option :timeout, :short => '-t SECS', :proc => proc { |a| a.to_i }, :default => 15
   option :mbean, :short => '-m Mbeans', :long => '--mbean VALUE'
   option :attribute, :short => '-a Attribute', :long => '--attribute VALUE'
-  option :innner_path, :short => '-i Inner PATH', :long => '--innner_path Inner PATH'
+  option :innner_path, :short => '-i Inner PATH', :long => '--innner-path Inner PATH'
   option :json_key, :short => '-k KEY', :long => '--key KEY'
   option :crit, :short => '-c VALUE', :long => '--critical VALUE'
   option :warn, :short => '-w VALUE', :long => '--warning VALUE'
