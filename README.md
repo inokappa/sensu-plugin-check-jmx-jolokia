@@ -1,21 +1,17 @@
 ## example jolokia response
 
 ~~~
-$ curl -s http://127.0.0.1:8778/jolokia/read/java.lang:type=Memory/HeapMemoryUsage | jq .
+$ curl -s http://127.0.0.1:8778/jolokia/read/java.lang:type=Memory/HeapMemoryUsage/used | jq .
 {
-  "timestamp": 1421741479,
+  "timestamp": 1421741614,
   "status": 200,
   "request": {
     "mbean": "java.lang:type=Memory",
+    "path": "used",
     "attribute": "HeapMemoryUsage",
     "type": "read"
   },
-  "value": {
-    "max": 1065025536,
-    "committed": 259719168,
-    "init": 268435456,
-    "used": 31921536
-  }
+  "value": 31944064
 }
 ~~~
 
