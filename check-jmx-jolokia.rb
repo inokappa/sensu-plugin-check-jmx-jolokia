@@ -11,7 +11,7 @@ class CheckJmxJolokia < Sensu::Plugin::Check::CLI
   option :host, :short => '-h HOST'
   option :path, :short => '-p PATH', :default => '/jolokia/read'
   option :timeout, :short => '-t SECS', :proc => proc { |a| a.to_i }, :default => 15
-  option :mbean, :short => '-m Mbeans', :long => '--mbean VALUE'
+  option :mbean, :short => '-m Mbean', :long => '--mbean Mbean'
   option :attribute, :short => '-a Attribute', :long => '--attribute VALUE'
   option :innner_path, :short => '-i Inner PATH', :long => '--innner-path Inner PATH'
   option :json_key, :short => '-k KEY', :long => '--key KEY'
