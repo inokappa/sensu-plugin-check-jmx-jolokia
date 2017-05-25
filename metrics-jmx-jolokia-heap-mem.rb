@@ -1,7 +1,7 @@
 #! /usr/bin/env ruby
 #  encoding: UTF-8
 #
-#   metrics-memory-percent
+#   metrics-jmx-jolokia-heap-mem
 #
 # DESCRIPTION:
 #
@@ -15,10 +15,10 @@
 #   gem: sensu-plugin
 #
 # USAGE:
-#  ./metrics-memory-percent.rb
+#  ./metrics-jmx-jolokia-heap-mem.rb -u http://localhost:8080
 #
 # LICENSE:
-#   Copyright 2012 Sonian, Inc <chefs@sonian.net>
+#   Steven Ayers <sayers@equalexperts.com>
 #   Released under the same terms as Sensu (the MIT license); see LICENSE
 #   for details.
 #
@@ -27,11 +27,11 @@ require 'json'
 require 'ostruct'
 require 'net/http'
 require 'sensu-plugin/metric/cli'
-#require 'socket'
+require 'socket'
 
 class MemoryGraphite < Sensu::Plugin::Metric::CLI::Graphite
   option :scheme,
-         description: 'Metric naming scheme, text to prepend to .$parent.$child',
+         description: 'Metric naming scheme',
          long: '--scheme SCHEME',
          default: Socket.gethostname.to_s
   option :url, :short => '-u URL', :default => 'http://127.0.0.1:8080', :description => 'The base URL to connect to'
