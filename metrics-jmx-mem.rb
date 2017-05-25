@@ -37,28 +37,23 @@ class MemoryGraphite < Sensu::Plugin::Metric::CLI::Graphite
   option :url, :short => '-u URL', :default => 'http://127.0.0.1:8080', :description => 'The base URL to connect to'
 
   def run
-    uri = URI.parse(config[:url])
-    config[:host] = uri.host
-    config[:port] = uri.port
-    # Based on memory-metrics.rb
-
-    # Metrics borrowed from hoardd: https://github.com/coredump/hoardd
-
+    if config[:url]
+      uri = URI.parse(config[:url])
+      config[:host] = uri.host
+      config[:port] = uri.port
+    else
+      unknown "Please provide a URL."
+    end
     mem = metrics_hash
-
     mem.each do |k, v|
       output "#{config[:scheme]}.#{config[:port]}.HeapMemoryUsage.#{k}", v
     end
-
     ok
   end
 
   def metrics_hash
-
     data = meminfo_output
-
     data.value.pcnt_used = 100.0 * data.value.used / data.value.max
-
     metrics = {
       max: data.value.max,
       init: data.value.init,
@@ -66,8 +61,6 @@ class MemoryGraphite < Sensu::Plugin::Metric::CLI::Graphite
       used: data.value.used,
       pcnt_used: data.value.pcnt_used
     }
-
-    return metrics
   end
 
   def meminfo_output
@@ -80,10 +73,10 @@ class MemoryGraphite < Sensu::Plugin::Metric::CLI::Graphite
           json = JSON.parse(res.body, object_class: OpenStruct)
           return json
         else
-          return JSON.parse('')
+          unknown "Could not validate JSON Response."
         end
       else
-        return JSON.parse('')
+        unknown "Could not validate JSON Response."
     end
   end
 
