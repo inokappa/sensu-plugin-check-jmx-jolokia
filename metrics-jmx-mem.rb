@@ -27,7 +27,7 @@ require 'json'
 require 'ostruct'
 require 'net/http'
 require 'sensu-plugin/metric/cli'
-#require 'socket'
+require 'socket'
 
 class MemoryGraphite < Sensu::Plugin::Metric::CLI::Graphite
   option :scheme,
@@ -44,16 +44,24 @@ class MemoryGraphite < Sensu::Plugin::Metric::CLI::Graphite
     else
       unknown "Please provide a URL."
     end
-    mem = metrics_hash
-    mem.each do |k, v|
+    heap_mem = metrics_hash('/jolokia/read/java.lang:type=Memory/HeapMemoryUsage')
+    heap_mem.each do |k, v|
       output "#{config[:scheme]}.#{config[:port]}.HeapMemoryUsage.#{k}", v
+    end
+    non_heap_mem = metrics_hash('/jolokia/read/java.lang:type=Memory/NonHeapMemoryUsage')
+    non_heap_mem.each do |k, v|
+      output "#{config[:scheme]}.#{config[:port]}.NonHeapMemoryUsage.#{k}", v
     end
     ok
   end
 
-  def metrics_hash
-    data = meminfo_output
-    data.value.pcnt_used = 100.0 * data.value.used / data.value.max
+  def metrics_hash(url)
+    data = meminfo_output(url)
+    if url.include? '/HeapMemoryUsage'
+      data.value.pcnt_used = 100.0 * data.value.used / data.value.max
+    else
+      data.value.pcnt_used = 0
+    end
     metrics = {
       max: data.value.max,
       init: data.value.init,
@@ -63,9 +71,9 @@ class MemoryGraphite < Sensu::Plugin::Metric::CLI::Graphite
     }
   end
 
-  def meminfo_output
+  def meminfo_output(url)
     http = Net::HTTP.new(config[:host], config[:port])
-    req = Net::HTTP::Get.new('/jolokia/read/java.lang:type=Memory/HeapMemoryUsage')
+    req = Net::HTTP::Get.new(url)
     res = http.request(req)
     case res.code
       when /^2/
