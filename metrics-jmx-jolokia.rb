@@ -29,12 +29,14 @@ require 'net/http'
 require 'sensu-plugin/metric/cli'
 require 'socket'
 
+
 class MemoryGraphite < Sensu::Plugin::Metric::CLI::Graphite
   option :scheme,
          description: 'Metric naming scheme',
          long: '--scheme SCHEME',
          default: Socket.gethostname.to_s
   option :url, :short => '-u URL', :default => 'http://127.0.0.1:8080', :description => 'The base URL to connect to'
+  option :path, :short => '-p PATH', :default => '*', :description => 'The path to the desired JMX object (the bit that goes after /jolokia/read/java.lang:type=).'
 
   def run
     if config[:url]
@@ -44,34 +46,29 @@ class MemoryGraphite < Sensu::Plugin::Metric::CLI::Graphite
     else
       unknown "Please provide a URL."
     end
-    heap_mem = metrics_hash('/jolokia/read/java.lang:type=Memory/HeapMemoryUsage')
-    heap_mem.each do |k, v|
-      output "#{config[:scheme]}.#{config[:port]}.HeapMemoryUsage.#{k}", v
+    if config[:path]
+      path = '/jolokia/read/java.lang:type=' + config[:path]
     end
-    non_heap_mem = metrics_hash('/jolokia/read/java.lang:type=Memory/NonHeapMemoryUsage')
-    non_heap_mem.each do |k, v|
-      output "#{config[:scheme]}.#{config[:port]}.NonHeapMemoryUsage.#{k}", v
-    end
+    metrics = info_output(path).value
+    prefix = "#{config[:scheme]}.#{config[:port]}.jvm_metrics"
+    output_open_struct(metrics, prefix)
+
     ok
   end
 
-  def metrics_hash(url)
-    data = meminfo_output(url)
-    if url.include? '/HeapMemoryUsage'
-      data.value.pcnt_used = 100.0 * data.value.used / data.value.max
+  def output_open_struct(object, prefix)
+    if object.is_a? OpenStruct
+      hash = object.to_h
+      hash.each do |k, v|
+        output_prefix = "#{prefix}.#{k.to_s.gsub('java.lang:type=', '')}"
+        output_open_struct(v, output_prefix)
+      end
     else
-      data.value.pcnt_used = 0
+      output prefix, object
     end
-    metrics = {
-      max: data.value.max,
-      init: data.value.init,
-      committed: data.value.committed,
-      used: data.value.used,
-      pcnt_used: data.value.pcnt_used
-    }
   end
 
-  def meminfo_output(url)
+  def info_output(url)
     http = Net::HTTP.new(config[:host], config[:port])
     req = Net::HTTP::Get.new(url)
     res = http.request(req)
