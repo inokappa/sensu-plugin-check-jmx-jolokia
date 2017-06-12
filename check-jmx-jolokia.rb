@@ -39,7 +39,7 @@ end
 
 class CheckJmxJolokia < Sensu::Plugin::Check::CLI
 
-  option :url, :short => '-u URL', :default => 'http://127.0.0.1:8778' :description => 'The base URL to connect to (including port)'
+  option :url, :short => '-u URL', :default => 'http://127.0.0.1:8778', :description => 'The base URL to connect to (including port)'
   option :host, :short => '-h HOST', :default => 'localhost', :description => '(Optional) The name of the host to connect to'
   option :path, :short => '-p PATH', :default => '/jolokia/read', :description => 'The URL path to the base of Jolokia'
   option :timeout, :short => '-t SECS', :proc => proc { |a| a.to_i }, :default => 15, :description => 'URL request timeout, in seconds'
