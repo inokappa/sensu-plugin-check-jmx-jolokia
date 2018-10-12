@@ -37,6 +37,7 @@ class MemoryGraphite < Sensu::Plugin::Metric::CLI::Graphite
          default: Socket.gethostname.to_s
   option :url, :short => '-u URL', :default => 'http://127.0.0.1:8080', :description => 'The base URL to connect to'
   option :path, :short => '-p PATH', :default => '*', :description => 'The path to the desired JMX object (the bit that goes after /jolokia/read/java.lang:type=).'
+  option :type, :short => '-t TYPE', :default => 'java.lang', :description => 'The type of request. Defaults to java.lang.type.'
 
   def run
     if config[:url]
@@ -47,7 +48,7 @@ class MemoryGraphite < Sensu::Plugin::Metric::CLI::Graphite
       unknown "Please provide a URL."
     end
     if config[:path]
-      path = '/jolokia/read/java.lang:type=' + config[:path]
+      path = '/jolokia/read/' + config[:type] + ':type=' + config[:path]
     end
     metrics = info_output(path).value
     prefix = "#{config[:scheme]}.#{config[:port]}.jvm_metrics"
@@ -75,7 +76,7 @@ class MemoryGraphite < Sensu::Plugin::Metric::CLI::Graphite
     case res.code
       when /^2/
         if json_valid?(res.body)
-          json = JSON.parse(res.body, object_class: OpenStruct)
+          json = ::JSON.parse(res.body, object_class: OpenStruct)
           return json
         else
           unknown "Could not validate JSON Response."
@@ -86,9 +87,9 @@ class MemoryGraphite < Sensu::Plugin::Metric::CLI::Graphite
   end
 
   def json_valid?(str)
-    JSON.parse(str)
+    ::JSON.parse(str)
     return true
-  rescue JSON::ParserError
+  rescue ::JSON::ParserError => e
     return false
   end
 end
